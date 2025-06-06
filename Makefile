@@ -6,9 +6,23 @@ build:
 	@docker build --platform local -o . .
 	@ls cu
 
+.PHONY: build-windows
+build-windows:
+	@which docker >/dev/null || ( echo "Please follow instructions to install Docker at https://docs.docker.com/get-started/get-docker/"; exit 1 )
+	@docker build --platform local -o . --build-arg TARGETOS=windows --build-arg TARGETARCH=amd64 .
+	@ls cu.exe
+
+.PHONY: build-local
+build-local:
+	go build -o cu ./cmd/cu
+
+.PHONY: build-local-windows
+build-local-windows:
+	GOOS=windows GOARCH=amd64 go build -o cu.exe ./cmd/cu
+
 .PHONY: clean
 clean:
-	rm -f cu
+	rm -f cu cu.exe
 
 .PHONY: find-path
 find-path:

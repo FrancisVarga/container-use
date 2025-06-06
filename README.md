@@ -36,6 +36,8 @@ It's an open-source MCP server that works as a CLI tool with Claude Code, Cursor
 
 ## Installing
 
+### Linux/macOS
+
 ```sh
 make
 ```
@@ -44,6 +46,32 @@ This will build the `cu` binary but _NOT_ install it to your `$PATH`. If you wan
 
 ```sh
 make install && hash -r
+```
+
+### Windows
+
+To build for Windows, use:
+
+```sh
+make build-local-windows
+```
+
+This will create a `cu.exe` binary for Windows. Alternatively, you can build directly with Go:
+
+```sh
+GOOS=windows GOARCH=amd64 go build -o cu.exe ./cmd/cu
+```
+
+### Alternative Build Methods
+
+For local development without Docker:
+
+```sh
+# Linux/macOS
+make build-local
+
+# Windows
+make build-local-windows
 ```
 
 The `make install` command will put `cu` in your `$PATH`. In order to use it, you will need to restart your terminal or run `hash -r` to refresh your `$PATH` (or equivalent for your shell).
