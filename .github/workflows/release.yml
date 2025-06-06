@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Build binaries
+      run: |
+        # Build for different platforms
+        GOOS=linux GOARCH=amd64 go build -o cu-linux-amd64 ./cmd/cu
+        GOOS=linux GOARCH=arm64 go build -o cu-linux-arm64 ./cmd/cu
+        GOOS=darwin GOARCH=amd64 go build -o cu-darwin-amd64 ./cmd/cu
+        GOOS=darwin GOARCH=arm64 go build -o cu-darwin-arm64 ./cmd/cu
+        GOOS=windows GOARCH=amd64 go build -o cu-windows-amd64.exe ./cmd/cu
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          cu-linux-amd64
+          cu-linux-arm64
+          cu-darwin-amd64
+          cu-darwin-arm64
+          cu-windows-amd64.exe
+        generate_release_notes: true
+        body: |
+          ## Docker Image
+          
+          You can run this release using Docker:
+          
+          ```bash
+          docker run --rm ${{ github.repository_owner }}/container-use:${{ github.ref_name }}
+          ```
+          
+          ## Installation
+          
+          Download the appropriate binary for your platform from the assets below and place it in your PATH.
+          
+          ### Using Docker (Recommended for MCP Server)
+          
+          ```bash
+          # Pull the image
+          docker pull ${{ github.repository_owner }}/container-use:${{ github.ref_name }}
+          
+          # Run as MCP server (stdio)
+          docker run --rm ${{ github.repository_owner }}/container-use:${{ github.ref_name }} stdio
+          ```
+          
+          ### MCP Configuration
+          
+          Add to your MCP client configuration:
+          
+          ```json
+          {
+            "mcpServers": {
+              "container-use": {
+                "command": "docker",
+                "args": [
+                  "run", "--rm", "-i",
+                  "${{ github.repository_owner }}/container-use:${{ github.ref_name }}",
+                  "stdio"
+                ],
+                "env": {},
+                "alwaysAllow": [],
+                "disabled": false
+              }
+            }
+          }
+          ```
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

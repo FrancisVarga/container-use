@@ -36,7 +36,23 @@ It's an open-source MCP server that works as a CLI tool with Claude Code, Cursor
 
 ## Installing
 
-### Linux/macOS
+### Docker (Recommended for MCP Server)
+
+The easiest way to run container-use as an MCP server is using Docker:
+
+```bash
+# Pull the latest image
+docker pull francisvarga/container-use:latest
+
+# Test it works
+docker run --rm francisvarga/container-use:latest --help
+```
+
+For MCP integration, you'll configure your client to run the Docker container directly. See the [Agent Integration](#agent-integration) section below for examples.
+
+### Local Installation
+
+#### Linux/macOS
 
 ```sh
 make
@@ -48,7 +64,7 @@ This will build the `cu` binary but _NOT_ install it to your `$PATH`. If you wan
 make install && hash -r
 ```
 
-### Windows
+#### Windows
 
 To build for Windows, use:
 
@@ -62,7 +78,7 @@ This will create a `cu.exe` binary for Windows. Alternatively, you can build dir
 GOOS=windows GOARCH=amd64 go build -o cu.exe ./cmd/cu
 ```
 
-### Alternative Build Methods
+#### Alternative Build Methods
 
 For local development without Docker:
 
@@ -83,19 +99,56 @@ Enabling `container-use` requires 2 steps:
 1. Adding an MCP configuration for `container-use`
 2. (Optional) Adding a rule so the agent uses containarized environments.
 
+### Using Docker (Recommended)
+
+For all the examples below, you can replace the local binary path with a Docker command. This is recommended as it avoids local installation and ensures consistency across platforms.
+
+**Docker command format:**
+```bash
+docker run --rm -i francisvarga/container-use:latest stdio
+```
+
 ### [Claude Code](https://docs.anthropic.com/en/docs/claude-code/tutorials#set-up-model-context-protocol-mcp)
 
+**Using Docker:**
+```sh
+# Add the container-use MCP with Docker
+npx @anthropic-ai/claude-code mcp add container-use -- docker run --rm -i francisvarga/container-use:latest stdio
+
+# Save the CLAUDE.md file at the root of the repository
+curl -o CLAUDE.md https://raw.githubusercontent.com/dagger/container-use/main/rules/agent.md
+```
+
+**Using local binary:**
 ```sh
 # Add the container-use MCP
 npx @anthropic-ai/claude-code mcp add container-use -- <path to cu> stdio
 
-# Save the CLAUDE.md file at the root of the repository. Alternatively, merge the instructions into your own CLAUDE.md.
+# Save the CLAUDE.md file at the root of the repository
 curl -o CLAUDE.md https://raw.githubusercontent.com/dagger/container-use/main/rules/agent.md
 ```
 
 ### [goose](https://block.github.io/goose/docs/getting-started/using-extensions#mcp-servers)
 
-Add this to `~/.config/goose/config.yaml`:
+**Using Docker:** Add this to `~/.config/goose/config.yaml`:
+
+```yaml
+extensions:
+  container-use:
+    name: container-use
+    type: stdio
+    enabled: true
+    cmd: docker
+    args:
+    - run
+    - --rm
+    - -i
+    - francisvarga/container-use:latest
+    - stdio
+    envs: {}
+```
+
+**Using local binary:** Add this to `~/.config/goose/config.yaml`:
 
 ```yaml
 extensions:
@@ -120,6 +173,7 @@ curl --create-dirs -o .cursor/rules/container-use.mdc https://raw.githubusercont
 ```sh
 curl --create-dirs -o .github/copilot-instructions.md https://raw.githubusercontent.com/dagger/container-use/main/rules/agent.md
 ```
+
 ### [Kilo Code](https://kilocode.ai/docs/features/mcp/using-mcp-in-kilo-code)
 
 `Kilo Code` allows setting MCP servers at global or project level - chose any as appropriate for your case. The video shows MCP server setting at global level.
@@ -128,6 +182,26 @@ curl --create-dirs -o .github/copilot-instructions.md https://raw.githubusercont
     <img src='./_assets/kilo-code-set-mcp-server.gif' width='300' alt='container-use kilo code mcp setting'>
 </p>
 
+**Using Docker:**
+```json
+{
+  "mcpServers": {
+    "container-use": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "francisvarga/container-use:latest",
+        "stdio"
+      ],
+      "env": {},
+      "alwaysAllow": [],
+      "disabled": false
+    }
+  }
+}
+```
+
+**Using local binary:**
 ```json
 {
   "mcpServers": {

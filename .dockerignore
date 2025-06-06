@@ -3,3 +3,7 @@
 !go.mod
 !go.sum
 !rules/agent.md
+!cu
+!cu.exe
+!cu-linux-amd64
+!cu-linux-arm64
