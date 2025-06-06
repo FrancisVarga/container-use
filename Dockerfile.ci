@@ -1,0 +1,14 @@
+FROM debian:12-slim
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y ca-certificates git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the pre-built binaries based on target platform
+ARG TARGETPLATFORM
+COPY cu-linux-${TARGETPLATFORM#linux/} /usr/local/bin/cu
+RUN chmod +x /usr/local/bin/cu
+
+ENTRYPOINT ["/usr/local/bin/cu"]
+CMD ["stdio"]

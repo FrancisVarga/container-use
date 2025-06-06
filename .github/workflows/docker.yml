@@ -25,6 +25,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Build binary
+      run: |
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o cu-linux-amd64 ./cmd/cu
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o cu-linux-arm64 ./cmd/cu
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -53,6 +63,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./Dockerfile.ci
         platforms: linux/amd64,linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
