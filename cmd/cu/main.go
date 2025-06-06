@@ -6,9 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"os/signal"
 	"runtime"
-	"syscall"
 
 	"dagger.io/dagger"
 	"github.com/dagger/container-use/environment"
@@ -62,16 +60,7 @@ func init() {
 }
 
 func main() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGUSR1)
-
-	go func() {
-		for sig := range sigs {
-			if sig == syscall.SIGUSR1 {
-				dumpStacks()
-			}
-		}
-	}()
+	setupSignalHandling()
 
 	if err := setupLogger(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup logger: %v\n", err)
